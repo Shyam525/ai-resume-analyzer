@@ -1,87 +1,134 @@
-# Welcome to React Router!
+# AI Resume Analyzer
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Production-style full-stack resume analysis app built with React 18, Vite, Tailwind CSS, Framer Motion, Express, and the Anthropic Claude API.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Stack
+
+- Frontend: React 18 + Vite + Tailwind CSS + Framer Motion
+- Backend: Node.js + Express
+- AI: Anthropic Claude `claude-sonnet-4-20250514`
+- Parsing: `pdf-parse`, `mammoth`, plain text fallback
+- Charts: Recharts
+- Export: `html2canvas` + `jspdf`
+
+## Project Structure
+
+```text
+resume analyzer/
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   └── utils/
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── server/
+│   ├── middleware/
+│   ├── prompts/
+│   ├── routes/
+│   ├── services/
+│   ├── index.js
+│   └── package.json
+├── .env
+├── .env.example
+└── package.json
+```
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- Resume upload for PDF, DOCX, and TXT files
+- ATS scoring and section-by-section breakdown
+- Strengths, weaknesses, missing keyword detection, and action items
+- Job description matching with re-analysis
+- AI rewrite panel for summary, experience, and skills
+- Radar chart section benchmarking
+- PDF report export
+- Local history of recent analyses
+- In-memory file handling with no resume persistence
 
-## Getting Started
+## Environment Variables
 
-### Installation
+Copy `.env.example` to `.env` and provide a valid Anthropic API key:
 
-Install the dependencies:
+```env
+ANTHROPIC_API_KEY=your_key_here
+PORT=5000
+NODE_ENV=development
+MAX_FILE_SIZE_MB=5
+```
+
+## Install
+
+```bash
+npm run install:all
+```
+
+If you prefer manual installs:
 
 ```bash
 npm install
+cd client && npm install
+cd ../server && npm install
 ```
 
-### Development
+## Run Locally
 
-Start the development server with HMR:
+Start both frontend and backend:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+App URLs:
 
-## Building for Production
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5000`
 
-Create a production build:
+## Build
 
 ```bash
 npm run build
 ```
 
-## Deployment
+## API
 
-### Docker Deployment
+### `POST /api/analyze`
 
-To build and run using Docker:
+Request: `multipart/form-data`
 
-```bash
-docker build -t my-app .
+- `file` required, accepts PDF/DOCX/TXT
+- `jobDescription` optional string
 
-# Run the container
-docker run -p 3000:3000 my-app
+Success response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "overallScore": 78,
+    "atsScore": 82
+  },
+  "meta": {
+    "wordCount": 542,
+    "processingTimeMs": 3241,
+    "model": "claude-sonnet-4-20250514"
+  }
+}
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+Common failure responses:
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+- `400` invalid type, missing file, file too large, unreadable file, empty or scanned resume
+- `500` malformed AI JSON after retry, or missing server API key
+- `502` upstream AI service unavailable
+- `504` AI request timeout
 
-### DIY Deployment
+## Notes
 
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+- Resume content is sanitized before being inserted into prompts.
+- Resume files are parsed in memory and are not stored on disk.
+- The backend retries once if Claude returns malformed JSON.
+- Quick tips are generated separately so the main analysis schema stays stable.

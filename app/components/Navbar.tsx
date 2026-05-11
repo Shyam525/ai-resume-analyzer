@@ -8,7 +8,9 @@ const Navbar = () => {
         <p className="text-2xl font-bold text-graidnet">Resumind</p>
       </Link>
 
-      <Link  to = "upload"className="primary-button w-fit">Upload Resume</Link>
+      <Link to="/upload" className="primary-button w-fit">
+        Upload Resume
+      </Link>
     </nav>
   );
 };
