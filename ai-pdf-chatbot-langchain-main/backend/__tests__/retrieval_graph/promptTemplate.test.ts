@@ -30,8 +30,6 @@ describe('Prompt Templates', () => {
         question: 'Tell me about the capital of France.',
       });
 
-      console.log(formattedPrompt.toString());
-
       expect(formattedPrompt.toString()).toContain(
         'You are an assistant for question-answering tasks',
       );
