@@ -168,15 +168,13 @@ export default function Home() {
               const retrievedDocs = (data as RetrieveDocumentsNodeUpdates)
                 .retrieveDocuments.documents as PDFDocument[];
 
-              // // Handle documents here
               lastRetrievedDocsRef.current = retrievedDocs;
-              console.log('Retrieved documents:', retrievedDocs);
             } else {
               // Clear the last retrieved documents if it's a direct answer
               lastRetrievedDocsRef.current = [];
             }
           } else {
-            console.log('Unknown SSE event:', event, data);
+            // Unknown event types are ignored in this stream handler.
           }
         }
       }
