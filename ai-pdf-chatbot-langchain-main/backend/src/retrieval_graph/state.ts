@@ -11,14 +11,13 @@ export const AgentStateAnnotation = Annotation.Root({
 
   /**
    * Populated by the retriever. This is a list of documents that the agent can reference.
-   * @type {Document[]}
+   * Supports various input formats that are normalized to Document[] via reduceDocs.
    */
   documents: Annotation<
     Document[],
     Document[] | { [key: string]: any }[] | string[] | string | 'delete'
   >({
     default: () => [],
-    // @ts-ignore
     reducer: reduceDocs,
   }),
 
