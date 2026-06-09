@@ -11,12 +11,32 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+const defaultAllowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 export function createApp() {
   const app = express();
 
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+
+        const allowed = [...allowedOrigins, ...defaultAllowedOrigins];
+        if (allowed.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error(`Origin not allowed by CORS: ${origin}`));
+      },
+      credentials: true,
     }),
   );
   app.use(express.json({ limit: "1mb" }));
@@ -28,6 +48,8 @@ export function createApp() {
       message: "Resume analyzer API is healthy.",
     });
   });
+
+  app.options("*", cors());
 
   app.use("/api/analyze", analyzeRoute);
   app.use(handleUploadError);

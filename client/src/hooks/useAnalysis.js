@@ -1,5 +1,7 @@
 import { useResumeContext } from "../context/ResumeContext";
 
+const ANALYSIS_TIMEOUT_MS = Number(import.meta.env.VITE_ANALYSIS_TIMEOUT_MS || 120000);
+
 function addToast(dispatch, type, message) {
   const id = `${Date.now()}-${Math.random()}`;
   dispatch({
@@ -30,6 +32,8 @@ export function useAnalysis() {
     dispatch({ type: "ANALYSIS_START" });
     dispatch({ type: "SET_JOB_DESCRIPTION", payload: jobDescription || "" });
 
+    let timeoutId;
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -37,9 +41,13 @@ export function useAnalysis() {
         formData.append("jobDescription", jobDescription.trim());
       }
 
+      const controller = new AbortController();
+      timeoutId = window.setTimeout(() => controller.abort(), ANALYSIS_TIMEOUT_MS);
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
 
       const payload = await response.json();
@@ -71,12 +79,16 @@ export function useAnalysis() {
 
       addToast(dispatch, "success", "Analysis complete.");
       return true;
-    } catch {
-      const message =
-        "We could not reach the analysis service. Please retry without re-uploading.";
+    } catch (error) {
+      const isTimeout = error?.name === "AbortError";
+      const message = isTimeout
+        ? `The analysis took longer than ${Math.round(ANALYSIS_TIMEOUT_MS / 1000)} seconds. Please try again with a smaller file or a shorter job description.`
+        : "We could not reach the analysis service. Please retry without re-uploading.";
       dispatch({ type: "ANALYSIS_ERROR", payload: message });
       addToast(dispatch, "error", message);
       return false;
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 
