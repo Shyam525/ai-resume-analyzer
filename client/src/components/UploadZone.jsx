@@ -110,16 +110,29 @@ export default function UploadZone({ onAnalyze, loading }) {
         ) : null}
 
         <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-3">
             <label
               htmlFor="jobDescription"
               className="text-sm font-medium text-slate-100"
             >
               Paste Job Description (optional)
             </label>
-            <span className="text-xs text-slate-400">
-              {state.jobDescription.length} / 4000
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400">
+                {state.jobDescription.length} / 4000
+              </span>
+              {state.jobDescription ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    dispatch({ type: "SET_JOB_DESCRIPTION", payload: "" })
+                  }
+                  className="text-xs font-medium text-cyan transition hover:text-cyan/80"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
           </div>
           <textarea
             id="jobDescription"
@@ -188,9 +201,20 @@ export default function UploadZone({ onAnalyze, loading }) {
         </div>
 
         <div className="glass-panel rounded-[2rem] p-6 md:p-8">
-          <p className="text-sm uppercase tracking-[0.28em] text-emerald/75">
-            Previous analyses
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm uppercase tracking-[0.28em] text-emerald/75">
+              Previous analyses
+            </p>
+            {state.history.length ? (
+              <button
+                type="button"
+                onClick={() => dispatch({ type: "CLEAR_HISTORY" })}
+                className="text-xs font-medium text-slate-300 transition hover:text-white"
+              >
+                Clear all
+              </button>
+            ) : null}
+          </div>
           <div className="mt-5 space-y-3">
             {state.history.length ? (
               state.history.map((entry) => (
